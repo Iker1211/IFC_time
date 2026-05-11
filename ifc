@@ -1,0 +1,30 @@
+#!/usr/bin/env python3
+import datetime
+
+def get_ifc_time():
+    now = datetime.datetime.now()
+    y, doy = now.year, now.timetuple().tm_yday
+    time_str = now.strftime("%H:%M:%S")
+    is_leap = (y % 4 == 0 and (y % 100 != 0 or y % 400 == 0))
+
+    months = ["January", "February", "March", "April", "May", "June",
+              "Sol", "July", "August", "September", "October", "November", "December"]
+    weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+
+    # Special "Out of Time" Days
+    if is_leap and doy == 169:
+        return f"Leap Day, {y} | {time_str}"
+    if (not is_leap and doy == 365) or (is_leap and doy == 366):
+        return f"Year Day, {y} | {time_str}"
+
+    # Adjustment for the Sol month shift
+    adj_doy = doy - 1 if (is_leap and doy > 169) else doy
+
+    m_idx = (adj_doy - 1) // 28
+    d = ((adj_doy - 1) % 28) + 1
+    wd = weekdays[(d - 1) % 7]
+
+    return f"{wd}, {months[m_idx]} {d}, {y} [{time_str}] (IFC)"
+
+if __name__ == "__main__":
+    print(get_ifc_time())
