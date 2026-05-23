@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Timer — The 42</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --violet: #40295E;
+  --blue: #13222E;
+  --white: #F5F5F5;
+  --black: #1A1A1A;
+  --gray: #5A5A5A;
+  --yellow: #E3C200;
+  --font-size-base: 1rem;
+  --font-size-md: clamp(0.625rem, 0.305vw + 0.55rem, 0.79rem);
+  --font-size-lg: clamp(0.975rem, 0.625vw + 0.82rem, 1.32rem);
+  --font-size-xl: clamp(1.525rem, 1.4875vw + 1.15625rem, 2.34375rem);
+  --system-ui: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --line-height: 1.5;
+}
+body {
+  font-family: var(--system-ui);
+  background: var(--blue);
+  color: var(--white);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.wrapper { width: 520px; }
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.1rem 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.wordmark { display: flex; align-items: center; gap: 8px; }
+.wordmark-circle {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--yellow);
+  flex-shrink: 0;
+}
+.wordmark-text { font-size: 13px; font-weight: 700; color: var(--white); letter-spacing: 0.02em; }
+.ifc-block { text-align: right; }
+.ifc-label {
+  font-size: var(--font-size-md);
+  color: var(--yellow);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+.ifc-date-text { font-size: var(--font-size-md); color: rgba(245,245,245,0.6); line-height: 1; }
+/* Main */
+.main { padding: 1.8rem 1.5rem 1.5rem; background: var(--violet); }
+.session-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.session-tag {
+  font-size: var(--font-size-md);
+  color: rgba(245,245,245,0.45);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.phase-pill {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 2px;
+  background: var(--yellow);
+  color: var(--blue);
+  transition: all .3s;
+}
+.phase-pill.break { background: rgba(245,245,245,0.12); color: rgba(245,245,245,0.6); }
+.clock {
+  font-size: clamp(5rem, 18vw, 7rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--white);
+  text-align: center;
+  margin-bottom: 1.4rem;
+  transition: color .4s;
+}
+.clock.ending { color: var(--yellow); }
+.clock.break  { color: rgba(245,245,245,0.45); }
+.progress-row { display: flex; gap: 3px; margin-bottom: 1.4rem; }
+.seg { height: 3px; flex: 1; background: rgba(255,255,255,0.1); border-radius: 1px; transition: background .4s; }
+.seg.done      { background: var(--yellow); opacity: .5; }
+.seg.active    { background: var(--yellow); }
+.seg.break-act { background: rgba(245,245,245,0.35); }
+.controls { display: flex; gap: 8px; justify-content: center; }
+.btn {
+  font-family: var(--system-ui);
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 9px 22px;
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 2px;
+  background: transparent;
+  color: rgba(245,245,245,0.45);
+  cursor: pointer;
+  transition: all .15s;
+}
+.btn:hover { color: var(--white); border-color: rgba(255,255,255,0.4); }
+.btn.primary { background: var(--yellow); border-color: var(--yellow); color: var(--blue); }
+.btn.primary:hover { background: #c9ac00; border-color: #c9ac00; }
+.btn.danger:hover  { border-color: #e05555; color: #e05555; }
+/* Bottom */
+.bottom { padding: 1.1rem 1.5rem 1.4rem; display: flex; flex-direction: column; gap: .9rem; }
+.sound-row { display: flex; align-items: center; gap: 10px; }
+.snd-toggle {
+  font-family: var(--system-ui);
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 2px;
+  background: transparent;
+  color: rgba(245,245,245,0.35);
+  cursor: pointer;
+  transition: all .15s;
+}
+.snd-toggle.on { border-color: var(--yellow); color: var(--yellow); }
+.sound-row label { font-size: var(--font-size-md); color: rgba(245,245,245,0.35); }
+input[type=range] { width: 64px; accent-color: var(--yellow); }
+.sound-row .spacer { flex: 1; }
+.test-btn {
+  font-family: var(--system-ui);
+  font-size: var(--font-size-md);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: rgba(245,245,245,0.35);
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 2px;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.test-btn:hover { color: var(--white); }
+.config-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.cfg-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 2px;
+  padding: 8px 10px;
+}
+.cfg-lbl {
+  display: block;
+  font-size: var(--font-size-md);
+  color: rgba(245,245,245,0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 2px;
+}
+.cfg-card input[type=number] {
+  width: 100%;
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  background: transparent;
+  border: none;
+  color: var(--white);
+  outline: none;
+  font-family: var(--system-ui);
+  line-height: 1;
+}
+.stats-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--font-size-md);
+  color: rgba(245,245,245,0.35);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding-top: .8rem;
+}
+.stats-row strong { color: var(--white); font-weight: 600; }
+.log-title {
+  font-size: var(--font-size-md);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(245,245,245,0.28);
+  margin-bottom: .4rem;
+}
+.log-list { display: flex; flex-direction: column; gap: 2px; max-height: 76px; overflow-y: auto; }
+.log-entry {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--font-size-md);
+  color: rgba(245,245,245,0.3);
+  padding: 2px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.log-entry .hi { color: rgba(245,245,245,0.65); }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="header">
+    <div class="wordmark">
+      <div class="wordmark-circle"></div>
+      <span class="wordmark-text">The 42</span>
+    </div>
+    <div class="ifc-block">
+      <div class="ifc-label">IFC</div>
+      <div class="ifc-date-text" id="ifc-date">—</div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="session-row">
+      <span class="session-tag" id="session-label">sesión 1 · bloque 1</span>
+      <span class="phase-pill" id="phase-pill">trabajo</span>
+    </div>
+    <div class="clock" id="clock">60:00</div>
+    <div class="progress-row" id="prog-row"></div>
+    <div class="controls">
+      <button class="btn primary" id="btn-start" onclick="toggleTimer()">iniciar</button>
+      <button class="btn" onclick="skipPhase()">saltar</button>
+      <button class="btn danger" onclick="resetAll()">reiniciar</button>
+    </div>
+  </div>
+  <div class="bottom">
+    <div class="sound-row">
+      <button class="snd-toggle on" id="snd-btn" onclick="toggleSound()">🔔 on</button>
+      <label>vol</label>
+      <input type="range" min="0" max="1" step="0.05" value="0.5" id="vol-slider">
+      <div class="spacer"></div>
+      <button class="test-btn" onclick="testSound()">probar</button>
+    </div>
+    <div class="config-grid">
+      <div class="cfg-card"><span class="cfg-lbl">trabajo</span><input type="number" id="cfg-work" value="60" min="5" max="120" onchange="applyConfig()"></div>
+      <div class="cfg-card"><span class="cfg-lbl">descanso</span><input type="number" id="cfg-break" value="10" min="1" max="30" onchange="applyConfig()"></div>
+      <div class="cfg-card"><span class="cfg-lbl">bloques</span><input type="number" id="cfg-blocks" value="6" min="2" max="20" onchange="applyConfig()"></div>
+      <div class="cfg-card"><span class="cfg-lbl">meta (h)</span><input type="number" id="cfg-goal" value="12" min="1" max="16" onchange="applyConfig()"></div>
+    </div>
+    <div class="stats-row">
+      <div>sesiones <strong id="sess-done">0</strong></div>
+      <div>estudiado <strong id="studied">0h 0m</strong></div>
+      <div>meta <strong id="goal-h">12</strong>h</div>
+    </div>
+    <div>
+      <div class="log-title">registro</div>
+      <div class="log-list" id="log-list">
+        <div class="log-entry"><span>—</span><span>sin actividad</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const IFC_MONTHS   = ["January","February","March","April","May","June","Sol","July","August","September","October","November","December"];
+const IFC_WEEKDAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+function dayOfYear(d) { return Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86400000); }
+function getIFCDate() {
+  const now = new Date(), y = now.getFullYear(), doy = dayOfYear(now);
+  const leap = (y % 4 === 0 && (y % 100 !== 0 || y % 400 === 0));
+  if (leap && doy === 169) return `Leap Day, ${y}`;
+  if ((!leap && doy === 365) || (leap && doy === 366)) return `Year Day, ${y}`;
+  const adj = (leap && doy > 169) ? doy - 1 : doy;
+  const mIdx = Math.floor((adj - 1) / 28), d = ((adj - 1) % 28) + 1;
+  return `${IFC_WEEKDAYS[(d-1)%7]}, ${IFC_MONTHS[mIdx]} ${d}, ${y}`;
+}
+function renderIFC() { document.getElementById('ifc-date').textContent = getIFCDate(); }
+
+let audioCtx = null, soundOn = true;
+function getCtx() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); return audioCtx; }
+function beep(type) {
+  if (!soundOn) return;
+  const vol = parseFloat(document.getElementById('vol-slider').value), ctx = getCtx();
+  const p = type === 'work' ? [{f:880,d:.12,t:0},{f:880,d:.12,t:.18},{f:1100,d:.25,t:.36}] : [{f:440,d:.2,t:0},{f:330,d:.35,t:.25}];
+  p.forEach(({f,d,t}) => {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination); o.type = 'sine'; o.frequency.value = f;
+    const n = ctx.currentTime + t;
+    g.gain.setValueAtTime(0,n); g.gain.linearRampToValueAtTime(vol*.4,n+.01); g.gain.exponentialRampToValueAtTime(.001,n+d);
+    o.start(n); o.stop(n+d+.05);
+  });
+}
+function testSound() { getCtx(); beep('work'); }
+function toggleSound() { soundOn = !soundOn; const b = document.getElementById('snd-btn'); b.textContent = soundOn ? '🔔 on' : '🔇 off'; b.className = 'snd-toggle' + (soundOn ? ' on' : ''); }
+
+let workMin=60, breakMin=10, blocksPerSession=6, goalH=12;
+let phase='work', block=1, session=1, secsLeft=workMin*60;
+let running=false, timer=null, studiedSecs=0, sessionsCompleted=0, logEntries=[];
+
+function applyConfig() {
+  if (running) return;
+  workMin=parseInt(document.getElementById('cfg-work').value)||60;
+  breakMin=parseInt(document.getElementById('cfg-break').value)||10;
+  blocksPerSession=parseInt(document.getElementById('cfg-blocks').value)||6;
+  goalH=parseInt(document.getElementById('cfg-goal').value)||12;
+  secsLeft=workMin*60; render();
+}
+function fmt(s) { return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`; }
+function fmtStudied(s) { return `${Math.floor(s/3600)}h ${Math.floor((s%3600)/60)}m`; }
+function buildProgress() {
+  const row=document.getElementById('prog-row'), total=blocksPerSession*2-1, cur=(block-1)*2+(phase==='break'?1:0);
+  row.innerHTML='';
+  for (let i=0;i<total;i++) { const s=document.createElement('div'); s.className='seg'+(i<cur?' done':i===cur&&phase==='break'?' break-act':i===cur?' active':''); row.appendChild(s); }
+}
+function render() {
+  const c=document.getElementById('clock'); c.textContent=fmt(secsLeft);
+  c.className='clock'+(phase==='break'?' break':secsLeft<=60&&running?' ending':'');
+  const pill=document.getElementById('phase-pill'); pill.textContent=phase==='work'?'trabajo':'descanso'; pill.className='phase-pill'+(phase==='break'?' break':'');
+  document.getElementById('session-label').textContent=`sesión ${session} · bloque ${block}`;
+  document.getElementById('studied').textContent=fmtStudied(studiedSecs);
+  document.getElementById('sess-done').textContent=sessionsCompleted;
+  document.getElementById('goal-h').textContent=goalH;
+  buildProgress();
+}
+function addLog(msg) {
+  const t=new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'}); logEntries.unshift({t,msg});
+  document.getElementById('log-list').innerHTML=logEntries.slice(0,15).map(e=>`<div class="log-entry"><span>${e.t}</span><span class="hi">${e.msg}</span></div>`).join('');
+}
+function nextPhase() {
+  if (phase==='work') {
+    beep('work');
+    if (block>=blocksPerSession) { sessionsCompleted++; addLog(`✓ sesión ${session} completada`); block=1; session++;
+      if (studiedSecs>=goalH*3600) { clearInterval(timer); running=false; document.getElementById('btn-start').textContent='iniciar'; addLog(`🎉 meta de ${goalH}h alcanzada`); phase='work'; secsLeft=workMin*60; render(); return; }
+    } else { addLog(`bloque ${block} terminado — descansando ${breakMin}min`); }
+    phase='break'; secsLeft=breakMin*60;
+  } else { beep('break'); block++; phase='work'; secsLeft=workMin*60; addLog(`▶ bloque ${block} iniciado`); }
+  render();
+}
+function tick() { if (phase==='work') studiedSecs++; secsLeft--; render(); if (secsLeft<0) nextPhase(); }
+function skipPhase() { secsLeft=0; }
+function toggleTimer() {
+  if (running) { clearInterval(timer); running=false; document.getElementById('btn-start').textContent='continuar'; addLog('⏸ pausado'); }
+  else { getCtx(); if (!logEntries.length) addLog('▶ inicio de sesión'); running=true; document.getElementById('btn-start').textContent='pausar'; timer=setInterval(tick,1000); }
+}
+function resetAll() {
+  clearInterval(timer); running=false; phase='work'; block=1; session=1;
+  secsLeft=workMin*60; studiedSecs=0; sessionsCompleted=0; logEntries=[];
+  document.getElementById('btn-start').textContent='iniciar';
+  document.getElementById('log-list').innerHTML='<div class="log-entry"><span>—</span><span>sin actividad</span></div>';
+  render();
+}
+renderIFC(); render(); setInterval(renderIFC, 60000);
+</script>
+</body>
+</html>
