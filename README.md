@@ -1,5 +1,5 @@
 
-#IFC time
+# IFC time
 ## script
 Python asks for the time to the hardware
 ## webpage
